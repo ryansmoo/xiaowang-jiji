@@ -1,0 +1,34 @@
+{
+  "name": "小汪記記",
+  "version": "1.0.0",
+  "description": "🐕 小汪記記 - 可愛的狗狗主題任務管理 LINE Bot",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "linebot",
+    "task-management",
+    "nodejs",
+    "puppy",
+    "cute",
+    "記記"
+  ],
+  "author": "您的名字",
+  "license": "MIT",
+  "dependencies": {
+    "@line/bot-sdk": "^10.2.0",
+    "express": "^4.18.0",
+    "dotenv": "^16.0.0",
+    "axios": "^1.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
