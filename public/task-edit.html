@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小汪記記 - 任務編輯</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #DDA368 0%, #F4D03F 100%);
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .header-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            color: #A0522D;
+            opacity: 0.8;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #DDA368;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: white;
+            color: #333;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #8B4513;
+            box-shadow: 0 0 5px rgba(139, 69, 19, 0.3);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #A0522D;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #DDD;
+            color: #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #CCC;
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #8B4513;
+            margin: 20px 0;
+        }
+        
+        .error {
+            color: #FF6347;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">✏️</div>
+            <div class="header-title">任務編輯</div>
+            <div class="header-subtitle">🐕 小汪記記為您服務</div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div>🐾 載入任務資料中...</div>
+        </div>
+        
+        <form id="taskForm" style="display: none;">
+            <div class="form-group">
+                <label class="form-label" for="taskName">任務名稱</label>
+                <input type="text" id="taskName" class="form-input" placeholder="輸入任務名稱..." maxlength="50">
+                <div id="taskNameError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="taskNote">任務備註</label>
+                <textarea id="taskNote" class="form-input form-textarea" placeholder="輸入任務備註..." maxlength="200"></textarea>
+                <div id="taskNoteError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="taskTime">任務時間</label>
+                <input type="datetime-local" id="taskTime" class="form-input" placeholder="選擇任務日期和時間">
+                <div id="taskTimeError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="taskReminder">任務提醒</label>
+                <select id="taskReminder" class="form-input">
+                    <option value="">不使用提醒</option>
+                    <option value="10">10分鐘前</option>
+                    <option value="30">30分鐘前</option>
+                    <option value="60">60分鐘前</option>
+                    <option value="custom">自訂</option>
+                </select>
+                <input type="number" id="customReminder" class="form-input" placeholder="輸入分鐘數" style="display: none; margin-top: 8px;" min="1" max="1440">
+                <div id="taskReminderError" class="error"></div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="cancelEdit()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveTask()">保存</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let currentTask = null;
+        
+        // 處理提醒選擇器變化
+        function handleReminderChange() {
+            const reminderSelect = document.getElementById('taskReminder');
+            const customReminderInput = document.getElementById('customReminder');
+            
+            if (reminderSelect.value === 'custom') {
+                customReminderInput.style.display = 'block';
+            } else {
+                customReminderInput.style.display = 'none';
+                customReminderInput.value = '';
+            }
+        }
+        
+        // 當頁面載入完成後，綁定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('taskReminder').addEventListener('change', handleReminderChange);
+        });
+        
+        // 初始化 LIFF
+        document.addEventListener('DOMContentLoaded', function() {
+            const liffId = '2007976732-1kEGwX34';
+            
+            liff.init({
+                liffId: liffId
+            }).then(() => {
+                console.log('✅ LIFF 初始化成功');
+                loadTaskData();
+            }).catch((err) => {
+                console.error('❌ LIFF 初始化失敗:', err);
+                showError('LIFF 初始化失敗，請重新開啟');
+            });
+        });
+        
+        // 載入任務資料
+        function loadTaskData() {
+            try {
+                // 從 URL 參數獲取任務 ID
+                const urlParams = new URLSearchParams(window.location.search);
+                const taskId = urlParams.get('taskId');
+                
+                if (!taskId) {
+                    showError('缺少任務 ID');
+                    return;
+                }
+                
+                console.log('📋 載入任務 ID:', taskId);
+                
+                // 從 API 獲取最新的任務資料
+                fetch(`/api/task/${taskId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('✅ 從 API 載入任務資料:', data.task);
+                            
+                            currentTask = {
+                                id: data.task.id,
+                                name: data.task.name,
+                                note: data.task.note || '',
+                                time: data.task.time || '',
+                                reminder: data.task.reminder || ''
+                            };
+                            
+                            // 填入表單資料
+                            document.getElementById('taskName').value = currentTask.name;
+                            document.getElementById('taskNote').value = currentTask.note;
+                            document.getElementById('taskTime').value = currentTask.time;
+                            
+                            // 設定提醒選擇器
+                            const reminderValue = currentTask.reminder;
+                            if (reminderValue && !['10', '30', '60'].includes(reminderValue)) {
+                                // 自訂分鐘數
+                                document.getElementById('taskReminder').value = 'custom';
+                                document.getElementById('customReminder').value = reminderValue;
+                                document.getElementById('customReminder').style.display = 'block';
+                            } else {
+                                document.getElementById('taskReminder').value = reminderValue;
+                            }
+                            
+                            // 顯示表單，隱藏載入畫面
+                            document.getElementById('loading').style.display = 'none';
+                            document.getElementById('taskForm').style.display = 'block';
+                        } else {
+                            console.error('❌ API 回傳錯誤:', data.message);
+                            showError('找不到指定任務');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ API 請求失敗:', error);
+                        // 降級處理：嘗試使用 URL 參數
+                        const taskName = urlParams.get('taskName') || '';
+                        const taskNote = urlParams.get('taskNote') || '';
+                        const taskTime = urlParams.get('taskTime') || '';
+                        const taskReminder = urlParams.get('taskReminder') || '';
+                        
+                        console.log('⚠️ 降級使用 URL 參數:', { taskId, taskName, taskNote, taskTime, taskReminder });
+                        
+                        currentTask = {
+                            id: taskId,
+                            name: decodeURIComponent(taskName),
+                            note: decodeURIComponent(taskNote),
+                            time: decodeURIComponent(taskTime),
+                            reminder: decodeURIComponent(taskReminder)
+                        };
+                        
+                        // 填入表單資料
+                        document.getElementById('taskName').value = currentTask.name;
+                        document.getElementById('taskNote').value = currentTask.note;
+                        document.getElementById('taskTime').value = currentTask.time;
+                        
+                        // 設定提醒選擇器
+                        const reminderValue = currentTask.reminder;
+                        if (reminderValue && !['10', '30', '60'].includes(reminderValue)) {
+                            document.getElementById('taskReminder').value = 'custom';
+                            document.getElementById('customReminder').value = reminderValue;
+                            document.getElementById('customReminder').style.display = 'block';
+                        } else {
+                            document.getElementById('taskReminder').value = reminderValue;
+                        }
+                        
+                        // 顯示表單，隱藏載入畫面
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('taskForm').style.display = 'block';
+                    });
+                
+            } catch (error) {
+                console.error('❌ 載入任務資料失敗:', error);
+                showError('載入任務資料失敗');
+            }
+        }
+        
+        // 保存任務
+        function saveTask() {
+            const taskName = document.getElementById('taskName').value.trim();
+            const taskNote = document.getElementById('taskNote').value.trim();
+            const taskTime = document.getElementById('taskTime').value;
+            const reminderSelect = document.getElementById('taskReminder').value;
+            const customReminderValue = document.getElementById('customReminder').value;
+            
+            // 計算最終的提醒值
+            let taskReminder = '';
+            if (reminderSelect === 'custom' && customReminderValue) {
+                taskReminder = customReminderValue;
+            } else if (reminderSelect && reminderSelect !== 'custom') {
+                taskReminder = reminderSelect;
+            }
+            
+            // 清除之前的錯誤訊息
+            document.getElementById('taskNameError').textContent = '';
+            document.getElementById('taskNoteError').textContent = '';
+            document.getElementById('taskTimeError').textContent = '';
+            document.getElementById('taskReminderError').textContent = '';
+            
+            // 驗證
+            if (!taskName) {
+                document.getElementById('taskNameError').textContent = '請輸入任務名稱';
+                return;
+            }
+            
+            if (taskName.length > 50) {
+                document.getElementById('taskNameError').textContent = '任務名稱不能超過50個字符';
+                return;
+            }
+            
+            if (taskNote.length > 200) {
+                document.getElementById('taskNoteError').textContent = '備註不能超過200個字符';
+                return;
+            }
+            
+            // 驗證自訂提醒
+            if (reminderSelect === 'custom') {
+                if (!customReminderValue || customReminderValue < 1 || customReminderValue > 1440) {
+                    document.getElementById('taskReminderError').textContent = '自訂提醒時間需要在1-1440分鐘之間';
+                    return;
+                }
+            }
+            
+            // 更新任務資料
+            currentTask.name = taskName;
+            currentTask.note = taskNote;
+            currentTask.time = taskTime;
+            currentTask.reminder = taskReminder;
+            
+            console.log('💾 保存任務:', currentTask);
+            
+            // 發送 API 請求到後端保存任務
+            fetch(`/api/tasks/${currentTask.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    taskName: taskName,
+                    taskNote: taskNote,
+                    taskTime: taskTime,
+                    taskReminder: taskReminder
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ 任務保存成功');
+                    alert('✅ 任務已保存成功！');
+                    closeLiff();
+                } else {
+                    console.error('❌ 任務保存失敗:', data.message);
+                    alert('❌ 保存失敗: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('❌ API 請求失敗:', error);
+                alert('❌ 保存失敗，請重試');
+            });
+        }
+        
+        // 取消編輯
+        function cancelEdit() {
+            closeLiff();
+        }
+        
+        // 顯示錯誤
+        function showError(message) {
+            document.getElementById('loading').innerHTML = `
+                <div style="color: #FF6347;">❌ ${message}</div>
+                <button onclick="closeLiff()" style="margin-top: 15px; padding: 10px 20px; border: none; border-radius: 5px; background: #DDA368; color: white; cursor: pointer;">關閉</button>
+            `;
+        }
+        
+        // 關閉 LIFF 視窗
+        function closeLiff() {
+            if (liff.isInClient()) {
+                liff.closeWindow();
+            } else {
+                window.close();
+            }
+        }
+    </script>
+</body>
+</html>

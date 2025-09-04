@@ -29,3 +29,22 @@ Thumbs.db
 # 小汪的秘密檔案 🐾
 puppy-secrets/
 bone-cache/
+
+# 開發和備份文件 (生產環境不需要)
+app-working.js
+app-*.js
+app.js.backup
+debug-webhook.js
+test-*.js
+direct-test.js
+handleEvent-backup.js
+
+# 開發文檔 (生產環境不需要)
+CHANGELOG.txt
+VERSION_HISTORY.md
+SUPABASE_SETUP.md
+supabase-quick-setup.sql
+supabase-schema.sql
+
+# 臨時文件
+nul

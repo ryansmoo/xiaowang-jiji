@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小汪記記 - 會員登入</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #DDA368 0%, #F4D03F 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #DDA368 0%, #F4D03F 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 30px;
+        }
+        
+        .logo {
+            font-size: 60px;
+            margin-bottom: 15px;
+            animation: wag 2s ease-in-out infinite;
+        }
+        
+        @keyframes wag {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .header-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .welcome-text {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .login-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .line-login-btn {
+            background: #00C300;
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .line-login-btn:hover {
+            background: #00B300;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 195, 0, 0.3);
+        }
+        
+        .line-login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .line-login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .line-login-btn:hover::before {
+            left: 100%;
+        }
+        
+        .line-icon {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00C300;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .features {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .features-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .privacy-notice {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 25px;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #DDA368;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #ffe6e6;
+            border: 1px solid #ffcccc;
+            color: #cc0000;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #e6ffe6;
+            border: 1px solid #ccffcc;
+            color: #006600;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 10px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .logo {
+                font-size: 50px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header">
+            <div class="logo">🐕</div>
+            <div class="header-title">小汪記記</div>
+            <div class="header-subtitle">成為會員享受更多功能</div>
+        </div>
+        
+        <div class="content">
+            <div class="error-message" id="errorMessage">
+                登入過程發生錯誤，請重試
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                登入成功！正在為您跳轉...
+            </div>
+            
+            <div class="welcome-text">
+                🎉 歡迎加入小汪記記大家庭！<br>
+                使用 LINE 帳戶快速登入，享受個人化任務管理體驗
+            </div>
+            
+            <div class="login-methods">
+                <a href="#" class="line-login-btn" id="lineLoginBtn" onclick="startLineLogin()">
+                    <div class="line-icon">L</div>
+                    使用 LINE 登入
+                </a>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>正在處理登入...</p>
+            </div>
+            
+            <div class="features">
+                <div class="features-title">🌟 會員專屬功能</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">📱</span>
+                        跨裝置同步任務資料
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        詳細的任務統計報告
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🔔</span>
+                        個人化提醒設定
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">💾</span>
+                        任務資料永久保存
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🎨</span>
+                        自訂主題和樣式
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="privacy-notice">
+                🔒 我們重視您的隱私安全<br>
+                登入後我們僅會使用您的 LINE 暱稱和頭像來提供個人化服務，不會存取其他個人資訊。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LINE Login 設定
+        const LINE_LOGIN_CONFIG = {
+            channelId: '2007976732', // 從 .env 讀取
+            redirectUri: 'https://7e86f8b664c5.ngrok-free.app/auth/line/callback', // 固定 URL
+            state: generateRandomState(),
+            scope: 'profile openid'
+        };
+        
+        // 生成隨機 state 參數
+        function generateRandomState() {
+            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        }
+        
+        // 開始 LINE 登入流程
+        function startLineLogin() {
+            const errorMessage = document.getElementById('errorMessage');
+            const loading = document.getElementById('loading');
+            const lineLoginBtn = document.getElementById('lineLoginBtn');
+            
+            // 隱藏錯誤訊息
+            errorMessage.style.display = 'none';
+            
+            // 顯示載入狀態
+            loading.style.display = 'block';
+            lineLoginBtn.style.display = 'none';
+            
+            try {
+                // 建構 LINE Login URL
+                const params = new URLSearchParams({
+                    response_type: 'code',
+                    client_id: LINE_LOGIN_CONFIG.channelId,
+                    redirect_uri: LINE_LOGIN_CONFIG.redirectUri,
+                    state: LINE_LOGIN_CONFIG.state,
+                    scope: LINE_LOGIN_CONFIG.scope
+                });
+                
+                const lineLoginUrl = `https://access.line.me/oauth2/v2.1/authorize?${params.toString()}`;
+                
+                // 儲存 state 到 sessionStorage 以供後續驗證
+                sessionStorage.setItem('line_login_state', LINE_LOGIN_CONFIG.state);
+                
+                console.log('🐕 開始 LINE 登入流程，跳轉到:', lineLoginUrl);
+                
+                // 跳轉到 LINE 登入頁面
+                window.location.href = lineLoginUrl;
+                
+            } catch (error) {
+                console.error('❌ LINE 登入初始化失敗:', error);
+                showError('登入初始化失敗，請重試');
+                
+                // 恢復按鈕狀態
+                loading.style.display = 'none';
+                lineLoginBtn.style.display = 'flex';
+            }
+        }
+        
+        // 顯示錯誤訊息
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+        
+        // 顯示成功訊息
+        function showSuccess(message) {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+        }
+        
+        // 頁面載入時檢查 URL 參數
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const success = urlParams.get('success');
+            
+            if (error) {
+                showError('登入失敗: ' + decodeURIComponent(error));
+            }
+            
+            if (success) {
+                showSuccess('登入成功！正在為您跳轉...');
+                // 3秒後跳轉到主頁
+                setTimeout(() => {
+                    window.location.href = '/profile';
+                }, 3000);
+            }
+            
+            console.log('🐕 小汪記記會員登入頁面已載入');
+        });
+        
+        // 處理返回按鈕
+        window.addEventListener('popstate', function(event) {
+            // 如果正在載入中，取消載入狀態
+            const loading = document.getElementById('loading');
+            const lineLoginBtn = document.getElementById('lineLoginBtn');
+            
+            if (loading.style.display === 'block') {
+                loading.style.display = 'none';
+                lineLoginBtn.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>

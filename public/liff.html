@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小汪記記 - 全部紀錄</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #DDA368 0%, #F4D03F 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #DDA368 0%, #F4D03F 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .header-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .task-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #DDA368;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-date {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .task-count {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .expand-icon {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .task-list {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2196f3;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .task-checkbox {
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+            user-select: none;
+            margin-top: 2px;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .task-note {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .task-time {
+            font-size: 10px;
+            color: #999;
+        }
+        
+        .task-completed .task-name {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #DDA368;
+        }
+        
+        .stat-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #DDA368;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .close-btn {
+            background: linear-gradient(135deg, #DDA368 0%, #F4D03F 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: bold;
+        }
+        
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            padding: 20px;
+        }
+        
+        /* Toggle 開關樣式 */
+        .view-toggle-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #DDA368;
+            text-align: center;
+        }
+        
+        .toggle-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 120px;
+            height: 40px;
+            background-color: #DDA368;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .toggle-switch.active {
+            background-color: #2196f3;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(80px);
+        }
+        
+        .toggle-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 0 15px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        
+        .toggle-label-left {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .toggle-label-right {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .toggle-switch.active .toggle-label-left {
+            opacity: 0.5;
+        }
+        
+        .toggle-switch.active .toggle-label-right {
+            opacity: 1;
+        }
+        
+        /* 月曆樣式 */
+        .calendar-container {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #4caf50;
+            display: none;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-nav-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-nav-btn:hover {
+            background: #45a049;
+            transform: scale(1.1);
+        }
+        
+        .calendar-month-year {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            padding: 8px 4px;
+        }
+        
+        .calendar-day {
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .calendar-day:hover {
+            background: #c8e6c9;
+        }
+        
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+        
+        .calendar-day.today {
+            background: #4caf50;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .calendar-day.has-tasks {
+            background: #ffeb3b;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .calendar-day.selected {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .selected-date-tasks {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .selected-date-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">📋</div>
+            <div class="header-title">全部紀錄</div>
+            <div class="header-subtitle">🐕 為您紀錄近期任務</div>
+        </div>
+        
+        <div class="content">
+            <!-- Toggle 開關區域 -->
+            <div class="view-toggle-container">
+                <div class="toggle-title">📅 檢視模式</div>
+                <div class="toggle-switch" id="viewToggle" onclick="toggleViewMode()">
+                    <div class="toggle-slider"></div>
+                    <div class="toggle-labels">
+                        <span class="toggle-label-left">3天</span>
+                        <span class="toggle-label-right">月</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 多日期任務卡片區域 (3天模式) -->
+            <div id="multiDayTaskCards">
+                <!-- 任務卡片會動態填入 -->
+            </div>
+            
+            <!-- 月曆模式區域 -->
+            <div class="calendar-container" id="calendarContainer">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" onclick="prevMonth()">‹</button>
+                    <div class="calendar-month-year" id="calendarMonthYear">
+                        2025年8月
+                    </div>
+                    <button class="calendar-nav-btn" onclick="nextMonth()">›</button>
+                </div>
+                
+                <div class="calendar-grid">
+                    <!-- 星期標題 -->
+                    <div class="calendar-day-header">日</div>
+                    <div class="calendar-day-header">一</div>
+                    <div class="calendar-day-header">二</div>
+                    <div class="calendar-day-header">三</div>
+                    <div class="calendar-day-header">四</div>
+                    <div class="calendar-day-header">五</div>
+                    <div class="calendar-day-header">六</div>
+                </div>
+                
+                <!-- 日期格線 -->
+                <div class="calendar-grid" id="calendarDays">
+                    <!-- 日期會動態填入 -->
+                </div>
+                
+                <!-- 選中日期的任務顯示 -->
+                <div class="selected-date-tasks" id="selectedDateTasks" style="display: none;">
+                    <div class="selected-date-title" id="selectedDateTitle">
+                        選中日期的任務
+                    </div>
+                    <div id="selectedDateTaskList">
+                        <!-- 任務清單會動態填入 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 任務統計區塊 -->
+            <div class="stat-card">
+                <div class="stat-title">📊 任務統計</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalTasks">-</div>
+                        <div class="stat-label">總任務數</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="completedTasks">-</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="pendingTasks">-</div>
+                        <div class="stat-label">待完成</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="completionRate">-</div>
+                        <div class="stat-label">完成率</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="close-btn" onclick="closeLiff()">關閉</button>
+        </div>
+    </div>
+
+    <script>
+        let multiDayTasks = [];
+        let allMonthTasks = {}; // 儲存整個月的任務資料
+        let currentCalendarDate = new Date(); // 目前顯示的月曆日期
+        let selectedDate = null; // 使用者選中的日期
+        let isMonthView = false; // 目前是否為月曆檢視
+        
+        // 載入多日期任務數量和清單
+        function loadMultiDayTasks() {
+            return fetch('/api/multi-day-tasks')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        multiDayTasks = data.data || [];
+                        renderMultiDayTaskCards();
+                        console.log('📊 多日期任務載入成功:', data.data);
+                        return data;
+                    } else {
+                        multiDayTasks = [];
+                        renderEmptyTaskCards();
+                        throw new Error('載入失敗');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ 載入多日期任務失敗:', error);
+                    multiDayTasks = [];
+                    renderEmptyTaskCards();
+                    throw error;
+                });
+        }
+        
+        // 渲染多個任務卡片
+        function renderMultiDayTaskCards() {
+            const container = document.getElementById('multiDayTaskCards');
+            
+            if (multiDayTasks.length === 0) {
+                container.innerHTML = '<div class="empty-state">暫無任務資料</div>';
+                return;
+            }
+            
+            const cardsHTML = multiDayTasks.map((dayData, index) => {
+                return `
+                    <div class="task-card" onclick="toggleTaskList(${index})">
+                        <div class="task-date">${dayData.dateLabel}</div>
+                        <div class="task-count">${dayData.total} 項任務</div>
+                        <div class="expand-icon" id="expandIcon${index}">▼ 點擊查看詳情</div>
+                    </div>
+                    
+                    <div class="task-list" id="taskList${index}" style="display: none;">
+                        <!-- 任務清單會動態填入 -->
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = cardsHTML;
+        }
+        
+        // 渲染空白任務卡片
+        function renderEmptyTaskCards() {
+            const container = document.getElementById('multiDayTaskCards');
+            container.innerHTML = `
+                <div class="task-card">
+                    <div class="task-date">昨天 (載入中...)</div>
+                    <div class="task-count">0 項任務</div>
+                    <div class="expand-icon">▼ 點擊查看詳情</div>
+                </div>
+                <div class="task-card">
+                    <div class="task-date">今天 (載入中...)</div>
+                    <div class="task-count">0 項任務</div>
+                    <div class="expand-icon">▼ 點擊查看詳情</div>
+                </div>
+                <div class="task-card">
+                    <div class="task-date">明天 (載入中...)</div>
+                    <div class="task-count">0 項任務</div>
+                    <div class="expand-icon">▼ 點擊查看詳情</div>
+                </div>
+            `;
+        }
+        
+        // 切換任務清單顯示
+        function toggleTaskList(dayIndex) {
+            const taskList = document.getElementById(`taskList${dayIndex}`);
+            const expandIcon = document.getElementById(`expandIcon${dayIndex}`);
+            
+            if (!taskList || !expandIcon) {
+                console.error('找不到任務清單元素:', dayIndex);
+                return;
+            }
+            
+            if (taskList.style.display === 'none') {
+                // 顯示任務清單
+                renderTaskList(dayIndex);
+                taskList.style.display = 'block';
+                expandIcon.textContent = '▲ 點擊收合';
+            } else {
+                // 隱藏任務清單
+                taskList.style.display = 'none';
+                expandIcon.textContent = '▼ 點擊查看詳情';
+            }
+        }
+        
+        // 渲染任務清單
+        function renderTaskList(dayIndex) {
+            const taskList = document.getElementById(`taskList${dayIndex}`);
+            
+            if (!taskList || !multiDayTasks[dayIndex]) {
+                console.error('找不到任務清單或資料:', dayIndex);
+                return;
+            }
+            
+            const dayTasks = multiDayTasks[dayIndex].tasks || [];
+            
+            if (dayTasks.length === 0) {
+                taskList.innerHTML = '<div class="empty-state">該日期沒有任務<br>發送訊息給小汪來新增任務吧～</div>';
+                return;
+            }
+            
+            const taskHTML = dayTasks.map((task, index) => {
+                const taskNumber = index + 1;
+                const completedClass = task.completed ? 'task-completed' : '';
+                const checkIcon = task.completed ? '☑' : '☐';
+                
+                return `
+                    <div class="task-item ${completedClass}">
+                        <div class="task-checkbox" onclick="toggleTaskCompletion('${task.id}')">
+                            ${checkIcon}
+                        </div>
+                        <div class="task-content">
+                            <div class="task-name">
+                                ${taskNumber}. ${task.text}
+                            </div>
+                            ${task.note ? `<div class="task-note">${task.note}</div>` : ''}
+                            ${task.time ? `<div class="task-time">⏰ ${task.time}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            taskList.innerHTML = taskHTML;
+        }
+        
+        // 切換任務完成狀態
+        function toggleTaskCompletion(taskId) {
+            console.log(`🔄 切換任務完成狀態: taskId=${taskId}`);
+            
+            fetch(`/api/tasks/${taskId}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ 任務狀態更新成功');
+                    // 重新載入任務清單和統計資料
+                    loadMultiDayTasks().then(() => {
+                        // 重新渲染已展開的任務清單
+                        for (let i = 0; i < multiDayTasks.length; i++) {
+                            const taskList = document.getElementById(`taskList${i}`);
+                            if (taskList && taskList.style.display !== 'none') {
+                                renderTaskList(i);
+                            }
+                        }
+                    });
+                    loadUserStats(); // 同時更新統計資料
+                } else {
+                    console.error('❌ 更新任務狀態失敗:', data.error);
+                    alert('更新任務狀態失敗');
+                }
+            })
+            .catch(error => {
+                console.error('❌ 請求失敗:', error);
+                alert('網路錯誤，請重試');
+            });
+        }
+        
+        // 載入統計資料
+        function loadUserStats() {
+            fetch('/api/user-stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('totalTasks').textContent = data.total || 0;
+                        document.getElementById('completedTasks').textContent = data.completed || 0;
+                        document.getElementById('pendingTasks').textContent = data.pending || 0;
+                        document.getElementById('completionRate').textContent = data.completionRate + '%';
+                    } else {
+                        showDefaultStats();
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ 載入統計資料失敗:', error);
+                    showDefaultStats();
+                });
+        }
+        
+        // 顯示預設統計
+        function showDefaultStats() {
+            document.getElementById('totalTasks').textContent = '0';
+            document.getElementById('completedTasks').textContent = '0';
+            document.getElementById('pendingTasks').textContent = '0';
+            document.getElementById('completionRate').textContent = '0%';
+        }
+        
+        // 初始化 LIFF
+        document.addEventListener('DOMContentLoaded', function() {
+            // 載入多日期任務和統計資料
+            loadMultiDayTasks();
+            loadUserStats();
+            
+            // 使用真實的 LIFF ID
+            const liffId = '2007976732-1kEGwX34';
+            
+            liff.init({
+                liffId: liffId
+            }).then(() => {
+                console.log('✅ LIFF 初始化成功');
+                
+                // 如果需要，可以獲取使用者資訊
+                if (liff.isLoggedIn()) {
+                    console.log('🐕 使用者已登入 LIFF');
+                }
+            }).catch((err) => {
+                console.error('❌ LIFF 初始化失敗:', err);
+                // 即使 LIFF 初始化失敗，也顯示頁面
+            });
+        });
+        
+        // 關閉 LIFF 視窗
+        function closeLiff() {
+            if (typeof liff !== 'undefined' && liff.isInClient()) {
+                liff.closeWindow();
+            } else {
+                window.close();
+            }
+        }
+        
+        // ==================== Toggle 功能 ====================
+        
+        // 切換檢視模式 (3天 <-> 月)
+        function toggleViewMode() {
+            const toggle = document.getElementById('viewToggle');
+            const multiDayCards = document.getElementById('multiDayTaskCards');
+            const calendarContainer = document.getElementById('calendarContainer');
+            
+            isMonthView = !isMonthView;
+            
+            if (isMonthView) {
+                // 切換到月曆模式
+                toggle.classList.add('active');
+                multiDayCards.style.display = 'none';
+                calendarContainer.style.display = 'block';
+                
+                // 載入月曆
+                loadCalendarData();
+                renderCalendar();
+            } else {
+                // 切換到3天模式
+                toggle.classList.remove('active');
+                multiDayCards.style.display = 'block';
+                calendarContainer.style.display = 'none';
+                
+                // 重新載入3天資料
+                loadMultiDayTasks();
+            }
+        }
+        
+        // ==================== 月曆功能 ====================
+        
+        // 載入月曆資料
+        async function loadCalendarData() {
+            try {
+                const year = currentCalendarDate.getFullYear();
+                const month = currentCalendarDate.getMonth() + 1;
+                
+                // 這裡可以擴展為從後端載入整月資料
+                // 暫時使用現有的3天資料作為示例
+                console.log(`📅 載入 ${year}年${month}月 的任務資料`);
+                
+                // 模擬載入月份任務資料
+                allMonthTasks = {};
+                
+                // 從多日期任務資料中提取相關日期的任務
+                if (multiDayTasks && multiDayTasks.length > 0) {
+                    multiDayTasks.forEach(dayData => {
+                        allMonthTasks[dayData.date] = dayData.tasks || [];
+                    });
+                }
+                
+            } catch (error) {
+                console.error('❌ 載入月曆資料失敗:', error);
+                allMonthTasks = {};
+            }
+        }
+        
+        // 渲染月曆
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendarDays');
+            const monthYear = document.getElementById('calendarMonthYear');
+            
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            // 更新月份年份顯示
+            monthYear.textContent = `${year}年${month + 1}月`;
+            
+            // 計算月曆資料
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const firstDayWeek = firstDay.getDay(); // 0 = 星期日
+            const daysInMonth = lastDay.getDate();
+            
+            // 計算前一個月需要顯示的天數
+            const prevMonth = new Date(year, month - 1, 0);
+            const prevMonthDays = prevMonth.getDate();
+            
+            let calendarHTML = '';
+            
+            // 前一個月的日期
+            for (let i = firstDayWeek - 1; i >= 0; i--) {
+                const day = prevMonthDays - i;
+                const dateStr = formatDateString(year, month - 1, day);
+                const hasTasksClass = allMonthTasks[dateStr] && allMonthTasks[dateStr].length > 0 ? 'has-tasks' : '';
+                
+                calendarHTML += `
+                    <div class="calendar-day other-month ${hasTasksClass}" 
+                         onclick="selectCalendarDate('${dateStr}')">${day}</div>
+                `;
+            }
+            
+            // 本月的日期
+            const today = new Date();
+            const todayStr = formatDateString(today.getFullYear(), today.getMonth(), today.getDate());
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = formatDateString(year, month, day);
+                const isToday = dateStr === todayStr ? 'today' : '';
+                const hasTasksClass = allMonthTasks[dateStr] && allMonthTasks[dateStr].length > 0 ? 'has-tasks' : '';
+                const selectedClass = selectedDate === dateStr ? 'selected' : '';
+                
+                calendarHTML += `
+                    <div class="calendar-day ${isToday} ${hasTasksClass} ${selectedClass}" 
+                         onclick="selectCalendarDate('${dateStr}')">${day}</div>
+                `;
+            }
+            
+            // 下個月的日期 (填滿6週)
+            const totalCells = firstDayWeek + daysInMonth;
+            const remainingCells = totalCells <= 35 ? 35 - totalCells : 42 - totalCells;
+            
+            for (let day = 1; day <= remainingCells; day++) {
+                const dateStr = formatDateString(year, month + 1, day);
+                const hasTasksClass = allMonthTasks[dateStr] && allMonthTasks[dateStr].length > 0 ? 'has-tasks' : '';
+                
+                calendarHTML += `
+                    <div class="calendar-day other-month ${hasTasksClass}" 
+                         onclick="selectCalendarDate('${dateStr}')">${day}</div>
+                `;
+            }
+            
+            calendarDays.innerHTML = calendarHTML;
+        }
+        
+        // 上個月
+        function prevMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            loadCalendarData().then(() => {
+                renderCalendar();
+            });
+        }
+        
+        // 下個月
+        function nextMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            loadCalendarData().then(() => {
+                renderCalendar();
+            });
+        }
+        
+        // 選擇日曆日期
+        function selectCalendarDate(dateStr) {
+            selectedDate = dateStr;
+            
+            // 更新日曆顯示
+            renderCalendar();
+            
+            // 顯示該日期的任務
+            showSelectedDateTasks(dateStr);
+        }
+        
+        // 顯示選中日期的任務
+        function showSelectedDateTasks(dateStr) {
+            const selectedDateTasks = document.getElementById('selectedDateTasks');
+            const selectedDateTitle = document.getElementById('selectedDateTitle');
+            const selectedDateTaskList = document.getElementById('selectedDateTaskList');
+            
+            // 格式化日期顯示
+            const date = new Date(dateStr);
+            const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+            
+            selectedDateTitle.textContent = `${formattedDate} 的任務`;
+            
+            const tasks = allMonthTasks[dateStr] || [];
+            
+            if (tasks.length === 0) {
+                selectedDateTaskList.innerHTML = '<div class="empty-state">該日期沒有任務<br>🐕 發送訊息給小汪來新增任務吧～</div>';
+            } else {
+                const taskHTML = tasks.map((task, index) => {
+                    const taskNumber = index + 1;
+                    const completedClass = task.completed ? 'task-completed' : '';
+                    const checkIcon = task.completed ? '☑' : '☐';
+                    
+                    return `
+                        <div class="task-item ${completedClass}">
+                            <div class="task-checkbox" onclick="toggleTaskCompletion('${task.id}')">
+                                ${checkIcon}
+                            </div>
+                            <div class="task-content">
+                                <div class="task-name">
+                                    ${taskNumber}. ${task.text}
+                                </div>
+                                ${task.note ? `<div class="task-note">${task.note}</div>` : ''}
+                                ${task.time ? `<div class="task-time">⏰ ${task.time}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                selectedDateTaskList.innerHTML = taskHTML;
+            }
+            
+            selectedDateTasks.style.display = 'block';
+        }
+        
+        // 格式化日期字符串 (YYYY-MM-DD)
+        function formatDateString(year, month, day) {
+            const adjustedMonth = month + 1; // JavaScript 月份從0開始
+            return `${year}-${adjustedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
