@@ -48,3 +48,6 @@ supabase-schema.sql
 
 # 臨時文件
 nul
+
+# 部署腳本 (不需要在生產環境)
+deploy-to-github.js
