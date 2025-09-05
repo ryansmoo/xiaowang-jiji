@@ -1,0 +1,19 @@
+{
+  "name": "xiaowang-jiji",
+  "framework": "express",
+  "buildCommand": "npm install",
+  "startCommand": "npm start",
+  "envs": [
+    "LINE_CHANNEL_ACCESS_TOKEN",
+    "LINE_CHANNEL_SECRET",
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_KEY",
+    "PORT"
+  ],
+  "healthCheck": {
+    "path": "/health",
+    "timeout": 30
+  },
+  "nodeVersion": "18"
+}
