@@ -20,6 +20,109 @@ const config = {
 // 建立 LINE Client
 const client = new line.Client(config);
 
+// 🏥 資料庫健康檢查端點
+app.get('/health', async (req, res) => {
+  try {
+    const healthCheck = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      services: {
+        app: 'running',
+        database: 'checking'
+      },
+      version: '1.0.0',
+      uptime: process.uptime()
+    };
+
+    // 檢查資料庫連線
+    const dbResult = await db.testConnection();
+    if (dbResult.success) {
+      healthCheck.services.database = 'connected';
+      
+      // 獲取系統統計
+      const stats = await db.getSystemStats();
+      if (stats.success) {
+        healthCheck.statistics = stats.data;
+      }
+    } else {
+      healthCheck.services.database = 'disconnected';
+      healthCheck.status = 'degraded';
+      healthCheck.error = dbResult.error;
+    }
+
+    // 檢查 LINE 配置
+    healthCheck.services.line = (config.channelAccessToken && config.channelSecret) ? 'configured' : 'not_configured';
+
+    const statusCode = healthCheck.status === 'healthy' ? 200 : 503;
+    res.status(statusCode).json(healthCheck);
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
+});
+
+// 🔍 資料庫狀態端點（更詳細的診斷資訊）
+app.get('/health/db', async (req, res) => {
+  try {
+    const diagnostics = {
+      timestamp: new Date().toISOString(),
+      connection: {},
+      tables: {},
+      performance: {}
+    };
+
+    // 測試基本連線
+    const startTime = Date.now();
+    const connectionTest = await db.testConnection();
+    diagnostics.connection = {
+      status: connectionTest.success ? 'connected' : 'failed',
+      latency: Date.now() - startTime,
+      message: connectionTest.message || connectionTest.error
+    };
+
+    if (connectionTest.success) {
+      // 檢查各表格狀態
+      const tables = ['members', 'tasks', 'task_history', 'task_reminders', 'system_settings'];
+      for (const table of tables) {
+        try {
+          const start = Date.now();
+          const { data, error } = await db.client
+            .from(table)
+            .select('count', { count: 'exact', head: true });
+          
+          diagnostics.tables[table] = {
+            accessible: !error,
+            count: data || 0,
+            responseTime: Date.now() - start
+          };
+        } catch (err) {
+          diagnostics.tables[table] = {
+            accessible: false,
+            error: err.message
+          };
+        }
+      }
+
+      // 測試查詢效能
+      const perfStart = Date.now();
+      await db.getUserTasks('performance_test_user', { limit: 1 });
+      diagnostics.performance.simpleQuery = Date.now() - perfStart;
+    }
+
+    res.json(diagnostics);
+  } catch (error) {
+    console.error('Database diagnostics failed:', error);
+    res.status(500).json({
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
+});
+
 // 🎨 狗狗表情符號集
 const puppyEmojis = {
   happy: '🐕',

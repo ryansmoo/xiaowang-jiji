@@ -5,8 +5,17 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "node test.js"
+    "dev": "node package-scripts.js dev",
+    "dev:watch": "node package-scripts.js dev:watch",
+    "test": "node package-scripts.js test",
+    "test:all": "node package-scripts.js test:all",
+    "db:init": "node package-scripts.js db:init",
+    "db:test": "node package-scripts.js db:test",
+    "db:migrate": "node package-scripts.js db:migrate",
+    "check": "node package-scripts.js check",
+    "pre-deploy": "node package-scripts.js pre-deploy",
+    "health": "node package-scripts.js health",
+    "script": "node package-scripts.js"
   },
   "keywords": [
     "linebot",
